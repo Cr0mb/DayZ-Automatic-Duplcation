@@ -1,6 +1,5 @@
 # DayZ Lag Duplication Glitch Documentation
 
-This document explains the mechanics, execution, and optimization of the "Lag Duplication Glitch" using the GHaxLabs Dupe Utility.
 
 ## Overview
 The glitch exploits a synchronization vulnerability in the DayZ server session management. By blocking network traffic during the character logout sequence, the client forces the server into an inconsistent state where it fails to despawn the original character, effectively leaving a "clone" in the world while allowing the player to rejoin.
