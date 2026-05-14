@@ -1,6 +1,4 @@
-# DayZ Lag Duplication Glitch Documentation
-
-This document explains the mechanics and execution of the "Lag Duplication Glitch" as implemented in `dub.cpp` and described in `lag.txt`.
+# DayZ Lag Duplication Glitch
 
 ## Overview
 The glitch exploits desynchronization between the DayZ client and server. By blocking network traffic during the character logout sequence, the client can manipulate the server into keeping a "stale" version of the character (the clone) in the world while allowing the player to rejoin as a new session.
