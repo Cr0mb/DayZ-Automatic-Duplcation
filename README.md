@@ -1,8 +1,38 @@
 # DayZ Lag Duplication Glitch Documentation
 
+This document explains the mechanics, execution, and optimization of the "Lag Duplication Glitch" using the GHaxLabs Dupe Utility.
 
 ## Overview
 The glitch exploits a synchronization vulnerability in the DayZ server session management. By blocking network traffic during the character logout sequence, the client forces the server into an inconsistent state where it fails to despawn the original character, effectively leaving a "clone" in the world while allowing the player to rejoin.
+
+---
+
+## How the Glitch Works
+
+The duplication glitch takes advantage of desynchronization between your game client and the server.
+
+### 1. Network Desynchronization (Lagswitching)
+By enabling a firewall rule that blocks the game's network traffic, you create a state where your client is "lagging." During this period, the server stops receiving updates about your actions but doesn't immediately kick you.
+
+### 2. State Inconsistency (The Loop)
+While lagging, the utility repeatedly starts and cancels the logout timer.
+- **Client-Side:** Your game thinks it is trying to leave and then staying.
+- **Server-Side:** Because of the lag, the server receives a backlog of conflicting "Exit" and "Cancel" requests all at once when the lag ends. This "confuses" the server's session management logic.
+
+### 3. Clone Generation (The Final Exit)
+On the 4th attempt, the utility clicks "Exit Now" precisely as the connection is restored.
+- The server receives the "Exit Now" command while it is still processing the previous cancelled logout attempts.
+- Due to this race condition, the server terminates your active session but fails to trigger the despawn routine for your character model.
+- Your character remains in the world as a "stale" instance (the clone), while you are free to rejoin as a new session.
+
+### 4. Technical Sequence
+The utility automates this desynchronization with millisecond precision:
+
+| Stage | Action | Timing / Logic |
+| :--- | :--- | :--- |
+| **Desync Loop** | 3x Exit/Cancel | Confuses the server's state machine. |
+| **Timed Exit** | 4th Exit Attempt | Initiated at `LagDuration - 700ms`. |
+| **Finalization** | "Exit Now" Click | Clicked at `LagDuration - 150ms`. |
 
 ---
 
