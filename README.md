@@ -90,6 +90,20 @@ The `Lobby Wait` is the time the utility waits in the main menu before clicking 
 
 ---
 
+## Compilation
+To compile the project using `g++` (MinGW), run the following command:
+
+```bash
+g++ dub.cpp -o dub.exe -lcomctl32 -lole32 -loleaut32 -luuid -lshell32 -ladvapi32 -mwindows
+```
+
+## Usage
+1. Compile the code to generate `dub.exe`.
+2. Ensure you have firewall rules named **"Rule"** (both Inbound and Outbound) created and pointing to your game executable.
+3. Run `dub.exe`.
+4. Use **CapsLock** to toggle the lag/sequence.
+5. Use **End** to exit the application.
+
 ## Troubleshooting
 
 *   **Tool Clicks Wrong Spots:** The tool scales coordinates based on your resolution. Ensure you are running the game in **Borderless** or **Windowed** mode at your native desktop resolution for best results.
