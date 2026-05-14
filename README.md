@@ -1,68 +1,72 @@
-# DayZ Lag Duplication Glitch
+# DayZ Lag Duplication Glitch Documentation
+
+This document explains the mechanics, execution, and optimization of the "Lag Duplication Glitch" using the GHaxLabs Dupe Utility.
 
 ## Overview
-The glitch exploits desynchronization between the DayZ client and server. By blocking network traffic during the character logout sequence, the client can manipulate the server into keeping a "stale" version of the character (the clone) in the world while allowing the player to rejoin as a new session.
+The glitch exploits a synchronization vulnerability in the DayZ server session management. By blocking network traffic during the character logout sequence, the client forces the server into an inconsistent state where it fails to despawn the original character, effectively leaving a "clone" in the world while allowing the player to rejoin.
 
-## Core Mechanics
+---
 
-### 1. Network Desynchronization (Lagswitching)
-The process begins by enabling a Windows Firewall rule (named "Rule" in the C++ tool or "Lagger" in the AHK script) that blocks the game's executable (`DayZ_x64.exe`). This prevents the client from sending updates to the server.
+## Configuration & Tuning
 
-### 2. State Inconsistency
-While lagging, the client performs a series of "Exit" and "Cancel" actions.
-- **The Loop:** Starting and cancelling the exit timer 3 times "confuses" the server's state machine for that session.
-- **The Final Exit:** On the 4th attempt, the client sends an "Exit Now" command just as the connection is restored.
+To achieve the highest success rate (standard is ~80%), you must tune the utility parameters based on your network conditions.
 
-### 3. Clone Generation
-Because the server receives the "Exit Now" command while its internal state for the player is inconsistent (due to the previous lag and cancelled exits), it fails to properly despawn the character.
-- The server retains the character's last known state in the world.
-- The player's session is terminated, allowing them to rejoin the lobby.
+### 1. Lag Duration (Tuning for Ping)
+The `Lag Duration` is the total time the firewall blocks the game's traffic. This must be long enough for the server to register a "lost connection" but short enough to avoid a complete session timeout.
 
-## Technical Implementation (`dub.cpp`)
+| Server Ping | Recommended Lag Duration |
+| :--- | :--- |
+| **Low (<50ms)** | 4,000ms - 5,500ms |
+| **Medium (50ms - 150ms)** | 6,000ms (Default) |
+| **High (>150ms)** | 7,000ms - 8,500ms |
 
-The `dub.cpp` utility automates the sequence with precise timing:
+*   **If you are timed out entirely:** Decrease the duration.
+*   **If no "red chains" appear or the server doesn't desync:** Increase the duration.
 
-| Stage | Action | Timing / Logic |
-| :--- | :--- | :--- |
-| **Activation** | Enable Firewall Rule | Blocks traffic; triggers "LAGGING" state. |
-| **Desync Loop** | 3x Exit/Cancel | Opens menu (ESC), clicks "Exit", then "Cancel". |
-| **Timed Exit** | 4th Exit Attempt | Initiated at `LagDuration - 700ms`. |
-| **Completion** | "Exit Now" Click | Clicked at `LagDuration - 150ms`. |
-| **Restoration** | Disable Firewall Rule | Restores traffic; player is kicked to lobby. |
-| **Rejoin** | Wait & Click Play | Waits `g_LobbyWait` (~9s) then clicks "Play". |
+### 2. Lobby Wait (Rejoin Timing)
+The `Lobby Wait` is the time the utility waits in the main menu before clicking "Play" to rejoin the server. This is the most sensitive parameter.
 
-### Coordinate Scaling
-The tool uses resolution-independent clicking by scaling base 1600x900 coordinates to the user's current screen resolution:
-```cpp
-float sx = (float)w / 1600;
-float sy = (float)h / 900;
-g_ExitX = (int)(BaseExitX * sx);
-// ... etc
-```
+*   **Default:** 9,000ms (9 seconds).
+*   **Error: "User with same UID is already in server":** This means you are rejoining too fast. **Increase** the wait time by 500ms increments.
+*   **Success Indicator:** When rejoining, you should see a **35-second timer**.
+    *   **35s Timer:** High success rate.
+    *   **15s Timer:** Likely failed (you rejoined too late); **Decrease** the wait time by 500ms increments.
+
+---
 
 ## Step-by-Step Procedure
 
-1.  **Preparation:**
-    - Ensure the firewall rule for `DayZ_x64.exe` is created but disabled.
-    - Run the utility (`dub.exe`) as Administrator.
-2.  **Execution:**
-    - Press **CapsLock** to start the sequence while in-game.
-    - The tool will automatically perform the lag, exit loops, and final "Exit Now" click.
-3.  **Lobby Wait:**
-    - Wait in the lobby for approximately 9-10 seconds. Rejoining too quickly results in a "UID already in use" error.
-4.  **Verification:**
-    - Upon rejoining, a **35-second timer** usually indicates success.
-    - A 15-second timer indicates a higher chance of failure.
-5.  **Securing the Loot:**
-    - Locate your clone (it should be standing where you "logged out").
-    - Kill the clone and loot the duplicated items.
-    - **Crucial:** Wait 1–2 minutes before logging out again to allow the server to fully sync the new inventory and prevent rollbacks.
+### 1. Preparation
+1.  **Firewall Setup:** Ensure you have an Inbound and Outbound rule named **"Rule"** that blocks `DayZ_x64.exe`.
+2.  **Admin Rights:** Run `dub.exe` as Administrator.
+3.  **In-Game:** Be logged into the server for at least **30 seconds** before starting. Stand in a safe, hidden location.
+
+### 2. Execution
+1.  Press **CapsLock**.
+2.  **Hands off:** The utility will automatically:
+    - Activate the lagswitch.
+    - Perform 3 cycles of starting and cancelling the "Exit to Lobby" timer.
+    - Perform a final "Exit Now" click precisely as the lag ends.
+3.  The game will return you to the main menu/lobby.
+
+### 3. Rejoining
+1.  The utility will wait for the `Lobby Wait` duration and then click **PLAY**.
+2.  Check your spawn timer:
+    - **35 Seconds:** Perfect. The clone is likely in the world.
+    - **15 Seconds:** You may have been too slow or the server synced too quickly.
+
+### 4. Securing the Loot
+1.  Locate your clone at the exact spot you logged out.
+2.  Kill the clone and loot the items.
+3.  **IMPORTANT:** Wait **1 to 2 minutes** after killing the clone before logging out or performing another dupe. This ensures the server fully synchronizes your new inventory and prevents "inventory rollbacks" or character death upon re-login.
+
+---
 
 ## Troubleshooting
 
-- **No Clone:** Rejoin speed might be too slow, or the `LagDuration` (default 6000ms) needs adjustment based on server latency.
-- **Red Chains:** Ensure the firewall rule is actually blocking traffic. If "red chains" don't appear in-game during the lag, the rule is misconfigured.
-- **Kicked Immediately:** Ensure you were logged into the server for at least 30 seconds before attempting the dupe.
+*   **Tool Clicks Wrong Spots:** The tool scales coordinates based on your resolution. Ensure you are running the game in **Borderless** or **Windowed** mode at your native desktop resolution for best results.
+*   **No Red Chains:** Your firewall rule name must be exactly **"Rule"**.
+*   **Kicked to Lobby Instantly:** The `Lag Duration` is too short for the desync loop to complete. Increase it to at least 4000ms.
 
 ---
-*Disclaimer: This documentation is for educational purposes regarding game engine vulnerabilities and network synchronization.*
+*Disclaimer: This documentation is for educational purposes regarding network synchronization vulnerabilities.*
