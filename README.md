@@ -113,4 +113,3 @@ g++ dub.cpp -o dub.exe -lcomctl32 -lole32 -loleaut32 -luuid -lshell32 -ladvapi32
 *   **Kicked to Lobby Instantly:** The `Lag Duration` is too short for the desync loop to complete. Increase it to at least 4000ms.
 
 ---
-*Disclaimer: This documentation is for educational purposes regarding network synchronization vulnerabilities.*
