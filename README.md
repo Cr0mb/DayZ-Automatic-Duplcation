@@ -1,5 +1,7 @@
 # DayZ Lag Duplication Glitch Documentation
 
+<img width="380" height="420" alt="image" src="https://github.com/user-attachments/assets/c547f0bf-b294-4ccc-8647-31274e5ab867" />
+
 
 ## Overview
 The glitch exploits a synchronization vulnerability in the DayZ server session management. By blocking network traffic during the character logout sequence, the client forces the server into an inconsistent state where it fails to despawn the original character, effectively leaving a "clone" in the world while allowing the player to rejoin.
